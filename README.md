@@ -1,73 +1,88 @@
-# Compressor Offline de Evidências — APK Android + PC
+# Compressor Offline de Evidências — APK Android + PC Windows
 
-Projeto novo para transformar o HTML de compressão de vídeos em um app offline.
+Este repositório foi montado para transformar o HTML enviado (`conversor-v2.html`) em:
 
-## O que ele faz
+- APK Android instalável direto;
+- Instalador Windows `.exe` para PC;
+- pacote Web/PWA.
 
-- Funciona offline depois de aberto/instalado.
-- Gera APK Android via GitHub Actions.
-- Também roda no PC como página web local/estática.
-- Comprime vídeos para até 10 MB.
-- Divide vídeos grandes em partes numeradas.
-- Nomeia arquivos por placa, serviço e nome específico do vídeo.
-- Salva histórico em banco local do aparelho usando IndexedDB.
-- No Android/APK, tenta salvar/compartilhar com Capacitor Filesystem + Share.
-- Sem servidor, sem Firebase, sem Cloudinary, sem internet para processar vídeos.
+## Onde está o HTML enviado?
+
+O HTML completo enviado pelo usuário está aqui:
+
+```txt
+src/index.html
+```
+
+Esse é o arquivo principal do app. O GitHub Actions usa esse mesmo arquivo para montar o APK Android, o instalador Windows e o pacote Web.
 
 ## Estrutura
 
 ```txt
-.github/workflows/build-apk.yml
+.github/workflows/build-apk-e-pc.yml
 src/index.html
 src/sw.js
 src/manifest.webmanifest
 src/icon-192.png
 src/icon-512.png
 scripts/prepare-www.mjs
+electron/main.js
+electron/preload.js
 capacitor.config.json
 package.json
-www/
+README.md
 ```
 
 ## Como subir no GitHub
 
-1. Crie um repositório novo.
-2. Extraia este ZIP.
-3. Suba o conteúdo da pasta para o repositório.
-4. Vá em **Actions**.
-5. Rode **Build APK Android Offline**.
-6. Baixe o artifact **COMPRESSOR-OFFLINE-APK**.
-7. Extraia e instale o `app-debug.apk`.
+Crie um repositório novo, por exemplo:
 
-## Como usar no PC
-
-Opção simples:
-
-- Abra `src/index.html` no Chrome/Edge.
-
-Opção PWA/local melhor:
-
-```bash
-npm install
-npm run prepare:www
-npx serve www
+```txt
+compressor-videos-offline-apk-pc
 ```
 
-## Banco local
+Extraia o ZIP e suba o conteúdo de dentro da pasta `gerador-apk-pc-offline-v3` na raiz do repositório.
 
-O app usa IndexedDB.
+A raiz do GitHub precisa ficar assim:
 
-Ele guarda:
+```txt
+.github/
+src/
+scripts/
+electron/
+package.json
+capacitor.config.json
+README.md
+```
 
-- placa;
-- serviço;
-- observação;
-- data;
-- vídeos comprimidos gerados;
-- blobs dos arquivos para baixar novamente.
+## Como gerar o APK e o instalador PC
 
-Atenção: arquivos de vídeo ocupam espaço. O Android pode apagar dados do app se o usuário limpar armazenamento.
+No GitHub:
 
-## Observação técnica
+1. Vá em **Actions**.
+2. Abra **Build APK Android e Instalador PC**.
+3. Clique em **Run workflow**.
+4. Aguarde ficar verde.
+5. Baixe os artifacts:
 
-A compressão usa APIs nativas do navegador/WebView: `MediaRecorder`, `canvas.captureStream`, `IndexedDB`, `Blob` e `FileReader`. Alguns aparelhos podem gerar WebM em vez de MP4 se a WebView não suportar MP4/H.264.
+```txt
+COMPRESSOR-OFFLINE-ANDROID-APK
+COMPRESSOR-OFFLINE-WINDOWS-PC
+COMPRESSOR-OFFLINE-WEB-PWA
+```
+
+## Como usar no PC sem instalar
+
+Abra direto:
+
+```txt
+src/index.html
+```
+
+## Como testar no PC como app
+
+Baixe o artifact `COMPRESSOR-OFFLINE-WINDOWS-PC` e execute o `.exe`.
+
+## Observação
+
+O processamento de vídeo depende do suporte do navegador/WebView/Electron a `MediaRecorder` e `canvas.captureStream`.
