@@ -70,6 +70,8 @@ jobs:
 
       - name: Gerar instalador Windows
         run: npm run pc:win
+        env:
+          GH_TOKEN: ""
 
       - name: Enviar instalador Windows
         uses: actions/upload-artifact@v4
