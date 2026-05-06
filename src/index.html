@@ -1,612 +1,434 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Compressor Offline de Evidências de Veículos — v3</title>
-  <style>
-    :root{
-      --bg:#0f172a;--card:#111827;--card2:#0b1220;--text:#e5e7eb;--muted:#9ca3af;--line:#263244;
-      --ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--blue:#38bdf8;--ink:#020617;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,#0f172a,#111827 60%,#020617);color:var(--text);min-height:100vh;padding-bottom:70px}
-    .wrap{max-width:1200px;margin:0 auto;padding:22px}
-    header{display:grid;gap:8px;margin-bottom:18px}
-    h1{font-size:clamp(23px,4vw,40px);line-height:1.05;margin:0;letter-spacing:-.03em}
-    h2,h3{margin:0 0 10px}
-    p{margin:0;color:var(--muted);line-height:1.5}
-    .grid{display:grid;grid-template-columns:1.02fr .98fr;gap:16px}
-    @media(max-width:930px){.grid{grid-template-columns:1fr}.wrap{padding:14px}}
-    .card{background:rgba(17,24,39,.93);border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 18px 45px rgba(0,0,0,.25)}
-    label{display:block;font-weight:700;margin:12px 0 6px}
-    input,select,button,textarea{width:100%;font:inherit;border-radius:14px;border:1px solid var(--line);padding:12px 13px;background:#020617;color:var(--text);outline:none}
-    input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(56,189,248,.15)}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-    @media(max-width:720px){.row,.row3{grid-template-columns:1fr}}
-    .drop{border:2px dashed #334155;border-radius:20px;padding:18px;text-align:center;background:#0b1220;margin:12px 0;cursor:pointer}
-    .drop.drag{border-color:var(--blue);background:#082032}
-    .drop strong{display:block;font-size:18px;margin-bottom:4px}
-    .btn{border:0;background:linear-gradient(135deg,#0ea5e9,#22c55e);color:white;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(14,165,233,.22)}
-    .btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
-    .btn2{border:1px solid #334155;background:#0b1220;color:var(--text);font-weight:800;cursor:pointer}
-    .btn-danger{border:1px solid #7f1d1d;background:#1f0606;color:#fecaca;font-weight:800;cursor:pointer}
-    .small{font-size:12px;color:var(--muted)}
-    .pill{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:6px 10px;margin:4px 4px 0 0;background:#020617;color:var(--muted);font-size:12px}
-    .ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}.blue{color:var(--blue)}
-    progress{width:100%;height:14px;border-radius:999px;overflow:hidden;margin:10px 0} progress::-webkit-progress-bar{background:#020617} progress::-webkit-progress-value{background:linear-gradient(90deg,#0ea5e9,#22c55e)}
-    table{width:100%;border-collapse:separate;border-spacing:0 10px;margin-top:10px}
-    th{font-size:12px;color:var(--muted);text-align:left;padding:0 8px}
-    td{background:#0b1220;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 8px;vertical-align:top;font-size:13px}
-    td:first-child{border-left:1px solid var(--line);border-radius:14px 0 0 14px}td:last-child{border-right:1px solid var(--line);border-radius:0 14px 14px 0}
-    a.download{display:inline-block;text-decoration:none;background:#022c22;border:1px solid #14532d;color:#bbf7d0;font-weight:800;border-radius:12px;padding:9px 10px;margin:2px 0}
-    .log{height:240px;overflow:auto;background:#020617;border:1px solid var(--line);border-radius:16px;padding:12px;white-space:pre-wrap;font-family:Consolas,Monaco,monospace;font-size:12px;color:#d1d5db}
-    .notice{border-left:4px solid var(--warn);background:#1b1404;border-radius:14px;padding:12px;color:#fde68a;margin-top:12px}
-    .dangerNotice{border-left:4px solid var(--bad);background:#210909;border-radius:14px;padding:12px;color:#fecaca;margin-top:12px}
-    .checkline{display:flex;gap:10px;align-items:flex-start;margin:10px 0;color:var(--muted);line-height:1.35}
-    .checkline input{width:auto;transform:scale(1.15);margin-top:2px}
-    .hidden{display:none!important}
-    .footer-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-    @media(max-width:620px){.footer-actions{grid-template-columns:1fr}}
-    .fileCards{display:grid;gap:10px;margin-top:12px}
-    .fileCard{border:1px solid var(--line);border-radius:18px;background:#0b1220;padding:12px}
-    .fileCardTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
-    .fileCard strong{word-break:break-word}
-    .miniBtn{width:auto;padding:8px 10px;border-radius:12px;font-size:12px}
-    footer{position:fixed;left:0;right:0;bottom:0;background:rgba(2,6,23,.94);border-top:1px solid var(--line);backdrop-filter:blur(10px);padding:12px 16px;text-align:center;color:#cbd5e1;font-size:13px;z-index:5}
-    footer strong{color:#fff}
-    .mono{font-family:Consolas,Monaco,monospace}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Compressor Offline de Evidências - v7 Sem Divisão Excessiva</title>
+<style>
+:root{--bg:#0b1020;--panel:#111827;--panel2:#0f172a;--text:#e5e7eb;--muted:#9ca3af;--line:#253044;--blue:#38bdf8;--ok:#22c55e;--warn:#facc15;--bad:#f87171;--green:#16a34a;--red:#991b1b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}.wrap{max-width:1220px;margin:0 auto;padding:18px 18px 80px}h1{margin:0 0 6px;font-size:clamp(26px,4vw,42px);line-height:1.05}h2{margin:0 0 14px;font-size:24px}h3{margin:18px 0 8px}.sub{color:var(--muted);font-size:16px}.bad{color:var(--bad);font-weight:900}.ok{color:var(--ok);font-weight:900}.warn{color:var(--warn);font-weight:900}.blue{color:var(--blue);font-weight:900}.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.pillbar{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.pill{border:1px solid var(--line);border-radius:999px;padding:7px 12px;color:#cbd5e1;background:#0d1424;font-size:13px}.grid{display:grid;grid-template-columns:520px 1fr;gap:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 12px 32px rgba(0,0,0,.22)}label{display:block;font-weight:850;margin:12px 0 6px}.small{font-size:12px;color:var(--muted);line-height:1.35}input,select{width:100%;border:1px solid #334155;border-radius:12px;background:#070b18;color:var(--text);padding:12px 14px;font-size:16px;outline:none}input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(56,189,248,.12)}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}.check{display:flex;gap:10px;align-items:flex-start;margin-top:12px;color:#cbd5e1;font-weight:750}.check input{width:auto;margin-top:3px;transform:scale(1.15)}.drop{border:2px dashed #334155;border-radius:18px;padding:22px;text-align:center;cursor:pointer;background:#0b1222;margin-top:12px}.drop.drag{border-color:var(--blue);background:#0e2135}.fileCard{border:1px solid var(--line);border-radius:16px;padding:12px;background:#0d1424;margin:10px 0}.fileTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.btn{border:0;border-radius:14px;padding:13px 16px;font-weight:950;font-size:16px;color:white;cursor:pointer;background:linear-gradient(90deg,#0ea5e9,#22c55e)}.btn:disabled{opacity:.45;cursor:not-allowed}.btn2{background:#0b1222;border:1px solid #334155}.btnDanger{background:#2a0608;border:1px solid #7f1d1d}.mini{font-size:13px;padding:8px 10px;border-radius:10px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}progress{width:100%;height:14px;accent-color:#22c55e;margin-top:12px}table{width:100%;border-collapse:separate;border-spacing:0 8px}th{text-align:left;color:#9ca3af;font-size:12px;padding:0 8px}td{padding:11px 8px;background:#0d1424;border-top:1px solid var(--line);border-bottom:1px solid var(--line);vertical-align:middle}td:first-child{border-left:1px solid var(--line);border-radius:12px 0 0 12px}td:last-child{border-right:1px solid var(--line);border-radius:0 12px 12px 0}.download{display:inline-block;text-decoration:none;color:white;background:#064e20;border:1px solid #166534;border-radius:12px;padding:10px 14px;font-weight:950}.log{height:200px;overflow:auto;background:#050816;border:1px solid #334155;border-radius:12px;padding:10px;white-space:pre-wrap;font:12px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace;color:#e5e7eb}.notice{border-left:4px solid var(--warn);background:#2b2105;color:#fde68a;border-radius:12px;padding:12px;margin-top:14px}.safe{border-left:4px solid var(--ok);background:#062817;color:#bbf7d0;border-radius:12px;padding:12px;margin-top:14px}.dangerNotice{border-left:4px solid var(--bad);background:#2a0b0b;color:#fecaca;border-radius:12px;padding:12px;margin-top:14px}footer{position:fixed;bottom:0;left:0;right:0;background:#070b18;border-top:1px solid var(--line);text-align:center;padding:11px;color:#d1d5db;font-size:13px;z-index:20}.hidden{display:none}@media(max-width:980px){.grid{grid-template-columns:1fr}.row,.row3{grid-template-columns:1fr}.wrap{padding-bottom:88px}.actions{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>Compressor Offline de Evidências de Veículos</h1>
-      <p>Prepara fotos/vídeos para portal de locadora, com nome por placa, tipo de evidência e divisão sequencial quando necessário.</p>
-      <div>
-        <span class="pill">Funciona offline depois de aberto</span>
-        <span class="pill">Não envia arquivo para servidor</span>
-        <span class="pill">Preserva original quando possível</span>
-        <span class="pill">ZIP final</span>
-        <span class="pill">v3: evita divisão excessiva</span>
-      </div>
-    </header>
-
-    <div class="grid">
-      <section class="card">
-        <h2>1) Dados do atendimento</h2>
-        <div class="row">
-          <div>
-            <label for="placa">Placa do veículo</label>
-            <input id="placa" placeholder="Ex.: SYR5I47" autocomplete="off" />
-          </div>
-          <div>
-            <label for="servico">Tipo geral do serviço/evidência <span class="small">opcional</span></label>
-            <input id="servico" list="servicos" placeholder="Ex.: avaria, vistoria_saida, guincho" autocomplete="off" />
-            <datalist id="servicos">
-              <option value="vistoria_entrada"></option><option value="vistoria_saida"></option><option value="avaria"></option>
-              <option value="guincho"></option><option value="lavagem"></option><option value="mecanica"></option>
-              <option value="funilaria"></option><option value="pneu"></option><option value="interior"></option>
-              <option value="painel_km"></option><option value="bicos_injetores"></option><option value="ar_condicionado"></option>
-              <option value="freio"></option><option value="suspensao"></option>
-            </datalist>
-          </div>
-        </div>
-
-        <div class="row3">
-          <div>
-            <label for="limite">Limite máximo por vídeo</label>
-            <select id="limite">
-              <option value="9.2" selected>9,2 MB — mais seguro para portal</option>
-              <option value="9.5">9,5 MB</option>
-              <option value="10">10 MB</option>
-              <option value="8">8 MB — internet fraca</option>
-              <option value="28">28 MB — limite visual do portal</option>
-            </select>
-          </div>
-          <div>
-            <label for="qualidade">Estratégia</label>
-            <select id="qualidade">
-              <option value="portal" selected>Portal Localiza: qualidade segura</option>
-              <option value="auto">Automática: qualidade máxima dentro do limite</option>
-              <option value="rapida">Rápida: menor arquivo</option>
-              <option value="forte">Forte: comprime mais</option>
-            </select>
-          </div>
-          <div>
-            <label for="partesMinimas">Divisão inicial</label>
-            <select id="partesMinimas">
-              <option value="auto" selected>Automática</option>
-              <option value="2">Mínimo 2 partes</option>
-              <option value="3">Mínimo 3 partes</option>
-              <option value="4">Mínimo 4 partes</option>
-              <option value="5">Mínimo 5 partes</option>
-            </select>
-          </div>
-        </div>
-
-        <label class="checkline"><input type="checkbox" id="modoPortal" checked /> <span><strong>Modo portal seguro:</strong> se o vídeo original já couber no limite, o sistema só renomeia e mantém o arquivo original, sem recodificar. Isso evita erro de codec no portal.</span></label>
-        <label class="checkline"><input type="checkbox" id="audio" checked /> <span>Manter áudio quando o navegador permitir.</span></label>
-        <label class="checkline"><input type="checkbox" id="forcarConversao" /> <span>Sempre converter, mesmo se o vídeo original já estiver abaixo do limite. Use somente se precisar reduzir qualidade/tamanho.</span></label>
-
-        <label>2) Selecione os vídeos</label>
-        <div class="drop" id="drop">
-          <strong>Arraste os vídeos aqui ou toque para escolher</strong>
-          <span class="small">Após selecionar, você pode dar um nome individual para cada evidência.</span>
-        </div>
-        <input id="files" class="hidden" type="file" accept="video/mp4,video/quicktime,video/*" multiple />
-        <div id="fileList" class="fileCards"></div>
-
-        <button class="btn" id="processar">PROCESSAR VÍDEOS</button>
-        <progress id="progresso" value="0" max="100"></progress>
-        <div id="status" class="small">Aguardando vídeos.</div>
-
-        <div class="footer-actions">
-          <button class="btn2" id="baixarZip" disabled>Baixar todos em ZIP</button>
-          <button class="btn-danger" id="limpar">Limpar resultados</button>
-        </div>
-
-        <div class="notice">
-          <strong>Correção importante:</strong> erro 500 no portal normalmente acontece quando o servidor recebe um MP4 com codec/metadados que ele não aceita. Por isso esta versão preserva o arquivo original quando ele já está abaixo do limite. Quando precisar converter, ela tenta primeiro gerar um único vídeo em qualidade segura e só divide se realmente for necessário.
-        </div>
-        <div class="dangerNotice">
-          <strong>Limite real:</strong> se a plataforma mostrar 28 MB, mas a operação exigir 10 MB, use 9,2 MB ou 9,5 MB. Essa margem evita rejeição por diferença entre MB decimal, MiB e overhead de upload.
-        </div>
-      </section>
-
-      <section class="card">
-        <h2>Resultados</h2>
-        <div class="small" id="compat"></div>
-        <table>
-          <thead><tr><th>Entrada</th><th>Resultado</th><th>Baixar</th></tr></thead>
-          <tbody id="tbody"></tbody>
-        </table>
-        <h3>Log técnico</h3>
-        <div class="log" id="log"></div>
-      </section>
-    </div>
+<div class="wrap">
+  <h1>Compressor Offline de Evidências de Veículos</h1>
+  <div class="sub">v7 Corrigida: preserva original quando couber, mantém áudio, tenta primeiro gerar UM arquivo único e só divide quando realmente necessário ou quando você mandar.</div>
+  <div class="pillbar">
+    <div class="pill">Funciona offline depois de aberto</div><div class="pill">Não envia arquivo para servidor</div><div class="pill">MP4/H.264 + AAC</div><div class="pill">Áudio mantido</div><div class="pill">Nome por placa + evidência</div><div class="pill">Divisão só quando necessário</div><div class="pill">ZIP final</div>
   </div>
-  <footer>Powered by <strong>thIAguinho Soluções</strong></footer>
-
+  <div class="grid">
+    <section class="card">
+      <h2>1) Dados do atendimento</h2>
+      <div class="row">
+        <div><label>Placa do veículo</label><input id="placa" placeholder="Ex.: SYR5I47" autocomplete="off" /></div>
+        <div><label>Tipo geral do serviço/evidência <span class="small">opcional</span></label><input id="servico" placeholder="Ex.: avaria, vistoria, entrega" autocomplete="off" /></div>
+      </div>
+      <div class="row3">
+        <div><label>Limite máximo por vídeo</label><select id="limite"><option value="9.2">9,2 MB — recomendado</option><option value="9.5">9,5 MB</option><option value="10">10 MB exato</option><option value="8">8 MB seguro</option><option value="28">28 MB portal</option></select></div>
+        <div><label>Qualidade</label><select id="qualidade"><option value="segura">segura para portal</option><option value="melhor">melhor imagem</option><option value="leve">arquivo mais leve</option></select></div>
+        <div><label>Divisão</label><select id="partes"><option value="auto">automática</option><option value="2">mínimo 2 partes</option><option value="3">mínimo 3 partes</option><option value="4">mínimo 4 partes</option><option value="6">mínimo 6 partes</option><option value="8">mínimo 8 partes</option></select></div>
+      </div>
+      <label class="check"><input type="checkbox" id="preservar" checked /> <span>Preservar arquivo original quando ele já estiver abaixo do limite. <span class="small">Mantém áudio, codec e metadados originais. É o modo mais seguro para o portal.</span></span></label>
+      <label class="check"><input type="checkbox" id="manterAudio" checked /> <span>Manter áudio nos vídeos convertidos e divididos. <span class="small">Gera MP4 com vídeo H.264 e áudio AAC quando o navegador suportar.</span></span></label>
+      <label class="check"><input type="checkbox" id="fallbackSemAudio" /> <span>Permitir fallback sem áudio somente se o navegador não conseguir codificar AAC. <span class="small">Deixe desmarcado se o áudio for obrigatório.</span></span></label>
+      <label class="check"><input type="checkbox" id="forcarSplit" /> <span>Forçar divisão sequencial mesmo se couber em um único arquivo.</span></label>
+      <label class="check"><input type="checkbox" id="validarTamanho" checked /> <span>Se o arquivo convertido passar do limite, refazer automaticamente em mais partes.</span></label>
+      <h3>2) Selecione os vídeos</h3>
+      <div id="drop" class="drop"><strong>Arraste os vídeos aqui ou clique para escolher</strong><br><span class="small">Depois de selecionar, você pode dar um nome individual para cada evidência.</span></div>
+      <input id="files" class="hidden" type="file" accept="video/*,.mp4,.mov" multiple />
+      <div id="fileList"></div>
+      <button id="processar" class="btn" type="button">PROCESSAR VÍDEOS</button>
+      <progress id="progresso" max="100" value="0"></progress>
+      <div id="status" class="small">Aguardando vídeos.</div>
+      <div class="actions"><button id="baixarZip" class="btn btn2" disabled type="button">Baixar todos em ZIP</button><button id="limpar" class="btn btnDanger" type="button">Limpar resultados</button></div>
+      <div class="safe"><strong>Correção v7:</strong> em modo automático, o sistema tenta primeiro gerar um único arquivo. Ele só divide se você marcar divisão forçada, escolher mínimo de partes, ou se o arquivo convertido ainda passar do limite.</div>
+      <div class="notice"><strong>Verdade técnica:</strong> navegador puro não é igual ao FFmpeg instalado. Se o Chrome/Edge não liberar encoder AAC/H.264 neste computador, a página avisa. Ela só segue sem áudio se você marcar o fallback sem áudio.</div>
+    </section>
+    <section class="card">
+      <h2>Resultados</h2>
+      <div id="compat" class="small"></div>
+      <table><thead><tr><th>Entrada</th><th>Resultado</th><th>Baixar</th></tr></thead><tbody id="tbody"></tbody></table>
+      <h3>Log técnico</h3>
+      <div id="log" class="log"></div>
+    </section>
+  </div>
+</div>
+<footer>Powered by <strong>thIAguinho Soluções</strong></footer>
 <script>
 (() => {
-  'use strict';
-  const $ = (id) => document.getElementById(id);
-  const els = {
-    placa: $('placa'), servico: $('servico'), limite: $('limite'), qualidade: $('qualidade'), partesMinimas: $('partesMinimas'),
-    modoPortal: $('modoPortal'), audio: $('audio'), forcarConversao: $('forcarConversao'), files: $('files'), drop: $('drop'),
-    fileList: $('fileList'), processar: $('processar'), progresso: $('progresso'), status: $('status'), tbody: $('tbody'),
-    log: $('log'), compat: $('compat'), baixarZip: $('baixarZip'), limpar: $('limpar')
-  };
+'use strict';
+const $ = id => document.getElementById(id);
+const els = {placa:$('placa'),servico:$('servico'),limite:$('limite'),qualidade:$('qualidade'),partes:$('partes'),preservar:$('preservar'),manterAudio:$('manterAudio'),fallbackSemAudio:$('fallbackSemAudio'),forcarSplit:$('forcarSplit'),validarTamanho:$('validarTamanho'),drop:$('drop'),files:$('files'),fileList:$('fileList'),processar:$('processar'),progresso:$('progresso'),status:$('status'),tbody:$('tbody'),log:$('log'),compat:$('compat'),baixarZip:$('baixarZip'),limpar:$('limpar')};
+let selectedFiles = [], labels = new Map(), results = [];
+const mb = b => (b/1000000).toFixed(2) + ' MB';
+const limitBytes = () => Math.floor(parseFloat(els.limite.value || '9.2') * 1000000);
+const pad = n => String(n).padStart(2,'0');
+const clamp = (v,min,max) => Math.max(min, Math.min(max, v));
+const delay = ms => new Promise(r => setTimeout(r, ms));
+const sanitize = (s, fb='') => (String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'').toUpperCase() || fb);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const log = msg => { const t = new Date().toLocaleTimeString('pt-BR'); els.log.textContent += `[${t}] ${msg}\n`; els.log.scrollTop = els.log.scrollHeight; };
+const setProg = (p, txt) => { els.progresso.value = clamp(p,0,100); if (txt) els.status.textContent = txt; };
+const isVideo = f => String(f.type||'').startsWith('video/') || /\.(mp4|mov|m4v|webm)$/i.test(f.name||'');
+function showCompat(){
+  const v = 'VideoEncoder' in window;
+  const a = 'AudioEncoder' in window && 'AudioData' in window;
+  const ac = 'AudioContext' in window || 'webkitAudioContext' in window;
+  els.compat.innerHTML = `Capacidade detectada: vídeo WebCodecs: <span class="${v?'ok':'bad'}">${v?'sim':'não'}</span> | áudio AAC/WebAudio: <span class="${a&&ac?'ok':'bad'}">${a&&ac?'sim':'não'}</span> | formato alvo: <span class="blue">MP4/H.264 + AAC</span>.`;
+}
+showCompat();
 
-  let selectedFiles = [];
-  let labelsByIndex = new Map();
-  let results = [];
-
-  const MIME_ALL = [
-    { mime: 'video/mp4;codecs="avc1.42E01E,mp4a.40.2"', ext: 'mp4', label: 'MP4/H.264 + AAC' },
-    { mime: 'video/mp4;codecs="avc1.4D401E,mp4a.40.2"', ext: 'mp4', label: 'MP4/H.264 + AAC' },
-    { mime: 'video/mp4', ext: 'mp4', label: 'MP4' },
-    { mime: 'video/webm;codecs=vp9,opus', ext: 'webm', label: 'WebM/VP9 + Opus' },
-    { mime: 'video/webm;codecs=vp8,opus', ext: 'webm', label: 'WebM/VP8 + Opus' },
-    { mime: 'video/webm', ext: 'webm', label: 'WebM' }
-  ];
-  const MIME_PORTAL = MIME_ALL.filter(x => x.ext === 'mp4');
-
-  function pickMime(){
-    if (!window.MediaRecorder) return null;
-    const list = els.modoPortal && els.modoPortal.checked ? MIME_PORTAL : MIME_ALL;
-    for (const c of list){
-      try { if (MediaRecorder.isTypeSupported(c.mime)) return c; } catch(e) {}
-    }
-    return null;
-  }
-
-  function refreshCompat(){
-    const mimeInfo = pickMime();
-    if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) {
-      els.compat.innerHTML = '<span class="bad">Este navegador não tem suporte suficiente a MediaRecorder/canvas.captureStream. Use Chrome, Edge ou Safari atualizado.</span>';
-      els.processar.disabled = true;
-      return;
-    }
-    if (!mimeInfo) {
-      els.compat.innerHTML = '<span class="bad">Modo portal está ativo, mas este navegador não informou suporte para gerar MP4. Desative o modo portal para gerar WebM, ou use Chrome/Edge/Safari atualizado.</span>';
-      els.processar.disabled = false;
-      return;
-    }
-    els.compat.innerHTML = 'Formato de conversão detectado: <strong class="blue">' + mimeInfo.label + '</strong>. <span class="small">Originais abaixo do limite serão preservados quando o modo portal estiver ativo.</span>';
-    els.processar.disabled = false;
-  }
-
-  function log(msg){
-    const now = new Date().toLocaleTimeString('pt-BR');
-    els.log.textContent += '[' + now + '] ' + msg + '\n';
-    els.log.scrollTop = els.log.scrollHeight;
-  }
-
-  function sanitize(s, fallback){
-    const clean = String(s || '')
-      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-      .replace(/[^a-zA-Z0-9_-]+/g,'_')
-      .replace(/_+/g,'_')
-      .replace(/^_|_$/g,'')
-      .toUpperCase();
-    return clean || fallback || '';
-  }
-  function pad(n){ return String(n).padStart(2,'0'); }
-  function mb(bytes){ return (bytes / 1000000).toFixed(2) + ' MB'; }
-  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
-  function delay(ms){ return new Promise(r => setTimeout(r, ms)); }
-  function extFromName(name){ const m = String(name||'').toLowerCase().match(/\.([a-z0-9]+)$/); return m ? m[1] : ''; }
-  function isPortalNativeVideo(file){
-    const ext = extFromName(file.name);
-    const type = String(file.type || '').toLowerCase();
-    return ext === 'mp4' || ext === 'mov' || type.includes('mp4') || type.includes('quicktime');
-  }
-  function setProgress(p, txt){ els.progresso.value = clamp(p,0,100); if (txt) els.status.textContent = txt; }
-  function currentLimitBytes(){ return Math.floor(parseFloat(els.limite.value || '9.2') * 1000000); }
-
-  function buildBaseName(fileIndex){
-    const placa = sanitize(els.placa.value || 'SEM_PLACA', 'SEM_PLACA');
-    const servicoGeral = sanitize(els.servico.value || '', '');
-    const label = sanitize(labelsByIndex.get(fileIndex) || '', '');
-    const mid = [servicoGeral, label].filter(Boolean).join('_') || 'EVIDENCIA';
-    return `${placa}_${mid}_VIDEO_${pad(fileIndex + 1)}`;
-  }
-
-  function listFiles(){
-    if (!selectedFiles.length){ els.fileList.innerHTML = '<div class="small">Nenhum vídeo selecionado.</div>'; return; }
-    els.fileList.innerHTML = '';
-    selectedFiles.forEach((f, i) => {
-      const card = document.createElement('div');
-      card.className = 'fileCard';
-      card.innerHTML = `
-        <div class="fileCardTop">
-          <div><strong>${pad(i+1)} — ${escapeHtml(f.name)}</strong><br><span class="small">${mb(f.size)} · ${escapeHtml(f.type || 'tipo não informado')}</span></div>
-          <button class="btn-danger miniBtn" type="button" data-remove="${i}">Remover</button>
-        </div>
-        <label for="label_${i}">Nome específico desta evidência <span class="small">opcional</span></label>
-        <input id="label_${i}" data-label-index="${i}" placeholder="Ex.: bicos injetores, ar condicionado, freio, lateral direita" value="${escapeAttr(labelsByIndex.get(i) || '')}" />
-        <div class="small">Prévia: <span class="mono" id="prev_${i}">${buildBaseName(i)}.mp4</span></div>
-      `;
-      els.fileList.appendChild(card);
-    });
-    els.fileList.querySelectorAll('[data-label-index]').forEach(inp => {
-      inp.addEventListener('input', () => {
-        const i = Number(inp.dataset.labelIndex);
-        labelsByIndex.set(i, inp.value);
-        const prev = $('prev_' + i);
-        if (prev) prev.textContent = buildBaseName(i) + '.mp4';
-      });
-    });
-    els.fileList.querySelectorAll('[data-remove]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const idx = Number(btn.dataset.remove);
-        selectedFiles.splice(idx,1);
-        const next = new Map();
-        selectedFiles.forEach((_, i) => next.set(i, labelsByIndex.get(i >= idx ? i + 1 : i) || ''));
-        labelsByIndex = next;
-        listFiles();
-      });
-    });
-  }
-  function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-  function escapeAttr(s){ return escapeHtml(s).replace(/'/g,'&#39;'); }
-
-  els.drop.addEventListener('click', () => els.files.click());
-  els.files.addEventListener('change', () => { selectedFiles = Array.from(els.files.files || []); labelsByIndex = new Map(); listFiles(); });
-  ['dragenter','dragover'].forEach(evt => els.drop.addEventListener(evt, e => { e.preventDefault(); els.drop.classList.add('drag'); }));
-  ['dragleave','drop'].forEach(evt => els.drop.addEventListener(evt, e => { e.preventDefault(); els.drop.classList.remove('drag'); }));
-  els.drop.addEventListener('drop', e => { selectedFiles = Array.from(e.dataTransfer.files || []).filter(f => String(f.type).startsWith('video/') || /\.(mp4|mov)$/i.test(f.name)); labelsByIndex = new Map(); listFiles(); });
-  ['modoPortal','qualidade','limite'].forEach(id => els[id].addEventListener('change', refreshCompat));
-  els.servico.addEventListener('input', listFiles);
-  els.placa.addEventListener('input', listFiles);
-
-  els.limpar.addEventListener('click', () => {
-    for (const r of results) URL.revokeObjectURL(r.url);
-    selectedFiles = []; labelsByIndex = new Map(); results = [];
-    els.files.value = ''; els.tbody.innerHTML = ''; els.log.textContent = ''; els.baixarZip.disabled = true;
-    listFiles(); setProgress(0, 'Aguardando vídeos.');
+function renderFiles(){
+  els.fileList.innerHTML = '';
+  selectedFiles.forEach((f, i) => {
+    const card = document.createElement('div'); card.className = 'fileCard';
+    card.innerHTML = `<div class="fileTop"><div><strong>${pad(i+1)} — ${esc(f.name)}</strong><br><span class="small">${mb(f.size)} · ${esc(f.type || 'vídeo')}</span></div><button class="btn btnDanger mini" type="button" data-remove="${i}">Remover</button></div><label>Nome específico desta evidência <span class="small">opcional</span></label><input data-label="${i}" placeholder="Ex.: bicos injetores, ar condicionado, freio, bandeja" value="${esc(labels.get(f)||'')}" /><div class="small">Prévia: <span class="mono" data-preview="${i}">${esc(buildBaseName(f,i+1))}.mp4</span></div>`;
+    els.fileList.appendChild(card);
   });
+  els.fileList.querySelectorAll('[data-remove]').forEach(btn => btn.onclick = () => { const idx = Number(btn.dataset.remove); labels.delete(selectedFiles[idx]); selectedFiles.splice(idx,1); renderFiles(); });
 
-  function waitEvent(target, event, timeoutMs = 45000){
-    return new Promise((resolve, reject) => {
-      const t = setTimeout(() => { cleanup(); reject(new Error('Tempo esgotado aguardando ' + event)); }, timeoutMs);
-      function ok(){ cleanup(); resolve(); }
-      function fail(){ cleanup(); reject(new Error('Erro ao ler vídeo.')); }
-      function cleanup(){ clearTimeout(t); target.removeEventListener(event, ok); target.removeEventListener('error', fail); }
-      target.addEventListener(event, ok, {once:true}); target.addEventListener('error', fail, {once:true});
-    });
+  // Correção v6: antes, a lista inteira era redesenhada a cada letra digitada.
+  // Isso recriava o input, derrubava o foco/cursor e fazia o campo aceitar só uma letra.
+  // Agora somente o valor no Map e a prévia daquele vídeo são atualizados, sem recriar o campo.
+  els.fileList.querySelectorAll('[data-label]').forEach(inp => inp.oninput = () => {
+    const idx = Number(inp.dataset.label);
+    const file = selectedFiles[idx];
+    if(!file) return;
+    labels.set(file, inp.value);
+    const prev = els.fileList.querySelector(`[data-preview="${idx}"]`);
+    if(prev) prev.textContent = `${buildBaseName(file, idx+1)}.mp4`;
+  });
+}
+function refreshPreviews(){
+  selectedFiles.forEach((file, idx) => {
+    const prev = els.fileList.querySelector(`[data-preview="${idx}"]`);
+    if(prev) prev.textContent = `${buildBaseName(file, idx+1)}.mp4`;
+  });
+}
+els.placa.addEventListener('input', refreshPreviews);
+els.servico.addEventListener('input', refreshPreviews);
+function addFiles(files){ const arr = [...files].filter(isVideo); selectedFiles.push(...arr); renderFiles(); if(arr.length) log(`${arr.length} vídeo(s) selecionado(s).`); }
+els.drop.onclick = () => els.files.click();
+els.files.onchange = e => addFiles(e.target.files);
+['dragenter','dragover'].forEach(ev => els.drop.addEventListener(ev, e => {e.preventDefault(); els.drop.classList.add('drag');}));
+['dragleave','drop'].forEach(ev => els.drop.addEventListener(ev, e => {e.preventDefault(); els.drop.classList.remove('drag');}));
+els.drop.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+function buildBaseName(file, index){
+  const placa = sanitize(els.placa.value, 'SEM_PLACA');
+  const serv = sanitize(els.servico.value, 'EVIDENCIA');
+  const indiv = sanitize(labels.get(file), sanitize((file.name||'VIDEO').replace(/\.[^.]+$/,''), 'VIDEO'));
+  return `${placa}_${serv}_${indiv}_VIDEO_${pad(index)}`;
+}
+function waitEvent(target, event, timeout=60000){ return new Promise((resolve,reject)=>{ const timer=setTimeout(()=>{clean(); reject(new Error(`Tempo excedido aguardando ${event}`));}, timeout); const ok=()=>{clean(); resolve();}; const er=()=>{clean(); reject(new Error('Erro ao ler mídia'));}; function clean(){clearTimeout(timer); target.removeEventListener(event,ok); target.removeEventListener('error',er);} target.addEventListener(event,ok,{once:true}); target.addEventListener('error',er,{once:true}); }); }
+async function loadMeta(file){ const url=URL.createObjectURL(file); const v=document.createElement('video'); v.preload='metadata'; v.muted=true; v.playsInline=true; v.src=url; await waitEvent(v,'loadedmetadata',90000); const r={duration:v.duration||0,width:v.videoWidth||0,height:v.videoHeight||0}; URL.revokeObjectURL(url); return r; }
+async function seek(v,t){ const target=Math.max(0,t); if(Math.abs(v.currentTime-target)<.035) return; v.currentTime=target; try{await waitEvent(v,'seeked',60000);}catch(e){await delay(350);} }
+
+async function videoEncoderConfig(width,height,fps,bitrate){
+  const codecs = ['avc1.42E01E','avc1.42001F','avc1.4D401F','avc1.64001F'];
+  for (const codec of codecs){
+    const cfg = {codec,width,height,framerate:fps,bitrate,hardwareAcceleration:'prefer-hardware',latencyMode:'quality',avc:{format:'annexb'}};
+    try{ const s = await VideoEncoder.isConfigSupported(cfg); if(s.supported) return s.config; }catch(e){}
   }
-
-  async function seekVideo(video, time){
-    const target = Math.max(0, time || 0);
-    if (Math.abs(video.currentTime - target) < 0.05) return;
-    video.currentTime = target;
-    try { await waitEvent(video, 'seeked', 45000); } catch(e) { await delay(600); }
-  }
-
-  async function metadata(file){
-    const url = URL.createObjectURL(file);
-    const v = document.createElement('video');
-    v.preload = 'metadata'; v.playsInline = true; v.muted = true; v.src = url;
-    await waitEvent(v, 'loadedmetadata', 60000);
-    const data = { duration: v.duration || 0, width: v.videoWidth || 0, height: v.videoHeight || 0 };
-    URL.revokeObjectURL(url);
-    return data;
-  }
-
-  function buildPresets(videoHeight){
-    const q = els.qualidade.value;
-    let heights;
-    if (q === 'portal') heights = [720,540,480,360,240];
-    else if (q === 'rapida') heights = [480,360,240];
-    else if (q === 'forte') heights = [540,480,360,240];
-    else heights = [720,540,480,360,240];
-    heights = heights.filter(h => h <= Math.max(videoHeight, 240));
-    if (!heights.length) heights = [Math.min(videoHeight || 360, 360)];
-    return heights.map(h => ({
-      height: h,
-      fps: h >= 540 ? 24 : h >= 360 ? 20 : 15,
-      minVideoBps: h >= 540 ? 480000 : h >= 360 ? 300000 : 180000,
-      maxVideoBps: h >= 720 ? 3200000 : h >= 540 ? 1800000 : h >= 360 ? 950000 : 520000
-    }));
-  }
-
-  function calcBitrate(duration, limitBytes, preset){
-    const targetBytes = Math.floor(limitBytes * 0.82);
-    const audioBps = els.audio.checked ? 48000 : 0;
-    const totalBps = Math.floor((targetBytes * 8) / Math.max(duration, 1));
-    const videoBps = clamp(totalBps - audioBps, preset.minVideoBps, preset.maxVideoBps);
-    return { videoBps, audioBps };
-  }
-
-  async function recordSegment(file, start, end, preset, bitrate, mimeInfo, onTick){
-    const srcUrl = URL.createObjectURL(file);
-    const video = document.createElement('video');
-    video.src = srcUrl; video.preload = 'auto'; video.playsInline = true; video.muted = !els.audio.checked; video.controls = false;
-    await waitEvent(video, 'loadedmetadata', 60000);
-    const sourceW = video.videoWidth || 1280;
-    const sourceH = video.videoHeight || 720;
-    const targetH = Math.max(180, Math.min(preset.height, sourceH));
-    const targetW = Math.max(320, Math.round((sourceW * targetH / sourceH) / 2) * 2);
-
-    const canvas = document.createElement('canvas'); canvas.width = targetW; canvas.height = targetH;
-    const ctx = canvas.getContext('2d', { alpha: false });
-    const stream = canvas.captureStream(preset.fps);
-
-    let audioCtx = null;
-    try {
-      if (els.audio.checked && window.AudioContext) {
-        audioCtx = new AudioContext();
-        const source = audioCtx.createMediaElementSource(video);
-        const dest = audioCtx.createMediaStreamDestination();
-        source.connect(dest);
-        for (const track of dest.stream.getAudioTracks()) stream.addTrack(track);
-        await audioCtx.resume();
-        video.muted = true;
-      }
-    } catch (e) { log('Áudio não mantido neste trecho; seguindo sem áudio. Motivo: ' + e.message); }
-
-    const chunks = [];
-    const opts = { mimeType: mimeInfo.mime, videoBitsPerSecond: bitrate.videoBps };
-    if (bitrate.audioBps) opts.audioBitsPerSecond = bitrate.audioBps;
-    const recorder = new MediaRecorder(stream, opts);
-    recorder.ondataavailable = ev => { if (ev.data && ev.data.size) chunks.push(ev.data); };
-
-    let drawTimer = 0;
-    let stopped = false;
-    const stopAll = () => {
-      if (stopped) return;
-      stopped = true;
-      try { video.pause(); } catch(e) {}
-      try { clearInterval(drawTimer); } catch(e) {}
-      try { if (recorder.state !== 'inactive') recorder.stop(); } catch(e) {}
-    };
-
-    function draw(){
-      if (stopped) return;
-      try { ctx.drawImage(video, 0, 0, targetW, targetH); } catch(e) {}
-      if (typeof onTick === 'function') onTick(video.currentTime);
-      if (video.currentTime >= end - 0.06 || video.ended) stopAll();
+  throw new Error('Este navegador não liberou encoder H.264/MP4. Use Chrome ou Edge atualizado no PC.');
+}
+async function audioEncoderConfig(sampleRate, channels, bitrate){
+  const cfg = {codec:'mp4a.40.2',sampleRate,numberOfChannels:channels,bitrate};
+  try{ const s = await AudioEncoder.isConfigSupported(cfg); if(s.supported) return s.config; }catch(e){}
+  throw new Error('Este navegador não liberou encoder AAC. Para manter áudio, use Chrome/Edge atualizado.');
+}
+function findStartCodes(u8){ const a=[]; for(let i=0;i<u8.length-3;i++){ if(u8[i]===0&&u8[i+1]===0&&(u8[i+2]===1||(u8[i+2]===0&&u8[i+3]===1))){ a.push({pos:i,len:u8[i+2]===1?3:4}); if(u8[i+2]===0) i++; } } return a; }
+function annexBToAvc(u8){ const sc=findStartCodes(u8); if(!sc.length){ return {data:u8,sps:[],pps:[]}; } const nals=[],sps=[],pps=[]; for(let i=0;i<sc.length;i++){ const start=sc[i].pos+sc[i].len; const end=(i+1<sc.length?sc[i+1].pos:u8.length); if(end<=start) continue; const nal=u8.slice(start,end); const type=nal[0]&31; if(type===7) sps.push(nal); if(type===8) pps.push(nal); nals.push(nal); } const outLen=nals.reduce((s,n)=>s+4+n.length,0); const out=new Uint8Array(outLen); let off=0; for(const n of nals){ writeU32(out,off,n.length); off+=4; out.set(n,off); off+=n.length; } return {data:out,sps,pps}; }
+function makeAvcC(sps,pps){ if(!sps||!pps||!sps.length||!pps.length) return null; const s=sps[0], p=pps[0]; const out=new Uint8Array(11+s.length+3+p.length); let o=0; out[o++]=1; out[o++]=s[1]||0x42; out[o++]=s[2]||0; out[o++]=s[3]||0x1e; out[o++]=0xff; out[o++]=0xe1; writeU16(out,o,s.length); o+=2; out.set(s,o); o+=s.length; out[o++]=1; writeU16(out,o,p.length); o+=2; out.set(p,o); return out; }
+function presetFor(meta){
+  const q=els.qualidade.value;
+  const base = q==='melhor' ? [{h:720,fps:24,max:4300000},{h:540,fps:24,max:3000000},{h:480,fps:20,max:2100000},{h:360,fps:18,max:1200000}] : q==='leve' ? [{h:540,fps:20,max:1800000},{h:480,fps:18,max:1250000},{h:360,fps:15,max:750000},{h:288,fps:12,max:450000}] : [{h:720,fps:24,max:3400000},{h:540,fps:20,max:2200000},{h:480,fps:18,max:1500000},{h:360,fps:15,max:900000}];
+  return base.map(p => { const h=Math.max(180,Math.min(p.h, meta.height||p.h)); const w=Math.max(320,Math.round(((meta.width||1280)*h/(meta.height||720))/2)*2); return {...p,w,h}; });
+}
+function bitratesFor(duration,preset,withAudio){
+  const audio = withAudio ? 96000 : 0;
+  const budgetBits = Math.floor(limitBytes()*0.82*8);
+  const targetVideo = Math.floor(budgetBits / Math.max(1,duration) - audio);
+  return {video:clamp(targetVideo,180000,preset.max), audio};
+}
+async function decodeAudioBuffer(file){
+  const AC = window.AudioContext || window.webkitAudioContext; if(!AC) throw new Error('WebAudio não disponível.');
+  const ctx = new AC();
+  try{ const arr = await file.arrayBuffer(); const buf = await ctx.decodeAudioData(arr.slice(0)); return buf; }
+  finally{ try{ await ctx.close(); }catch(e){} }
+}
+async function encodeAudioSegment(audioBuffer,start,end,bitrate){
+  if(!audioBuffer) return null;
+  const sampleRate = audioBuffer.sampleRate;
+  const channels = Math.min(2, audioBuffer.numberOfChannels || 1);
+  const cfg = await audioEncoderConfig(sampleRate, channels, bitrate || 96000);
+  let asc = null; const samples=[];
+  const encoder = new AudioEncoder({
+    output(chunk, meta){
+      if(meta && meta.decoderConfig && meta.decoderConfig.description) asc = new Uint8Array(meta.decoderConfig.description);
+      const data = new Uint8Array(chunk.byteLength); chunk.copyTo(data);
+      const dur = chunk.duration ? Math.max(1, Math.round(chunk.duration * sampleRate / 1000000)) : 1024;
+      samples.push({data, duration:dur});
+    },
+    error(e){ throw e; }
+  });
+  encoder.configure(cfg);
+  const startSample = Math.max(0, Math.floor(start * sampleRate));
+  const endSample = Math.min(audioBuffer.length, Math.ceil(end * sampleRate));
+  const chunkFrames = 1024;
+  for(let pos=startSample; pos<endSample; pos+=chunkFrames){
+    const frames = Math.min(chunkFrames, endSample-pos);
+    const planar = new Float32Array(frames*channels);
+    for(let ch=0; ch<channels; ch++){
+      const src = audioBuffer.getChannelData(Math.min(ch, audioBuffer.numberOfChannels-1));
+      for(let i=0;i<frames;i++) planar[ch*frames+i] = src[pos+i] || 0;
     }
+    const ad = new AudioData({format:'f32-planar', sampleRate, numberOfFrames:frames, numberOfChannels:channels, timestamp:Math.round((pos-startSample)*1000000/sampleRate), data:planar});
+    encoder.encode(ad); ad.close();
+    if(pos % (chunkFrames*20) === 0) await delay(0);
+  }
+  await encoder.flush(); encoder.close();
+  if(!samples.length) return null;
+  if(!asc) asc = makeAudioSpecificConfig(sampleRate, channels);
+  return {samples, asc, sampleRate, channels, bitrate:bitrate||96000};
+}
+function makeAudioSpecificConfig(sampleRate, channels){
+  const freqs=[96000,88200,64000,48000,44100,32000,24000,22050,16000,12000,11025,8000,7350];
+  let idx=freqs.indexOf(sampleRate); if(idx<0) idx=3;
+  const audioObjectType=2; const ch=channels;
+  const val=(audioObjectType<<11)|(idx<<7)|(ch<<3);
+  return Uint8Array.of((val>>8)&255,val&255);
+}
+async function encodeVideoSegment(file,start,end,preset,bitrate,progress){
+  if(!('VideoEncoder' in window)) throw new Error('WebCodecs não disponível neste navegador.');
+  const url=URL.createObjectURL(file); const v=document.createElement('video'); v.src=url; v.preload='auto'; v.muted=true; v.playsInline=true; v.controls=false;
+  await waitEvent(v,'loadedmetadata',90000); await seek(v,start);
+  const canvas=document.createElement('canvas'); canvas.width=preset.w; canvas.height=preset.h; const ctx=canvas.getContext('2d',{alpha:false});
+  const frameUs=Math.round(1000000/preset.fps); const samples=[]; let avcC=null, sps=[], pps=[], frameNo=0;
+  const cfg=await videoEncoderConfig(preset.w,preset.h,preset.fps,bitrate);
+  const encoder=new VideoEncoder({
+    output(chunk, meta){
+      if(meta && meta.decoderConfig && meta.decoderConfig.description) avcC = new Uint8Array(meta.decoderConfig.description);
+      let data=new Uint8Array(chunk.byteLength); chunk.copyTo(data);
+      const conv=annexBToAvc(data); data=conv.data; if(conv.sps.length) sps.push(...conv.sps); if(conv.pps.length) pps.push(...conv.pps);
+      samples.push({data, key:chunk.type==='key', duration:Math.round(90000/preset.fps)});
+    },
+    error(e){ throw e; }
+  });
+  encoder.configure(cfg);
+  const duration=Math.max(.2,end-start); const maxFrames=Math.max(1,Math.ceil(duration*preset.fps));
+  const t0=performance.now();
+  for(let i=0;i<maxFrames;i++){
+    const t=start+(i/preset.fps); if(t>=end) break;
+    await seek(v,t);
+    try{ ctx.drawImage(v,0,0,preset.w,preset.h); }catch(e){}
+    const vf=new VideoFrame(canvas,{timestamp:frameNo*frameUs,duration:frameUs});
+    encoder.encode(vf,{keyFrame: frameNo % Math.max(1,Math.round(preset.fps*2)) === 0}); vf.close(); frameNo++;
+    if(progress && i%3===0) progress(i/maxFrames,t);
+    if(i%12===0) await delay(0);
+    if(performance.now()-t0 > 1000*60*15) throw new Error('Processamento demorou demais neste navegador. Divida em mais partes ou use Chrome/Edge no PC.');
+  }
+  await encoder.flush(); encoder.close(); URL.revokeObjectURL(url);
+  if(!samples.length) throw new Error('O navegador não gerou quadros de vídeo.');
+  if(!avcC) avcC=makeAvcC(sps,pps);
+  if(!avcC) throw new Error('O navegador não entregou cabeçalho H.264/avcC. Não é seguro gerar MP4.');
+  return {samples,avcC,width:preset.w,height:preset.h,fps:preset.fps,timescale:90000};
+}
+async function encodeSegment(file,start,end,preset,videoBitrate,audioBuffer,withAudio,progress){
+  let audioTrack = null;
+  const videoTrack = await encodeVideoSegment(file,start,end,preset,videoBitrate,progress);
+  if(withAudio){ audioTrack = await encodeAudioSegment(audioBuffer,start,end,96000); }
+  return mp4Mux(videoTrack,audioTrack);
+}
 
-    const stoppedPromise = new Promise((resolve, reject) => {
-      recorder.onstop = resolve;
-      recorder.onerror = ev => reject(ev.error || new Error('Erro no MediaRecorder'));
-    });
+function bytes(...arrs){ const len=arrs.reduce((s,a)=>s+(a?a.length:0),0); const out=new Uint8Array(len); let o=0; for(const a of arrs){ if(!a) continue; out.set(a,o); o+=a.length; } return out; }
+function str(s){ return new TextEncoder().encode(s); }
+function u8(v){ return Uint8Array.of(v&255); }
+function u16(v){ const a=new Uint8Array(2); writeU16(a,0,v); return a; }
+function u24(v){ return Uint8Array.of((v>>>16)&255,(v>>>8)&255,v&255); }
+function u32(v){ const a=new Uint8Array(4); writeU32(a,0,v>>>0); return a; }
+function writeU16(a,o,v){ a[o]=(v>>>8)&255; a[o+1]=v&255; }
+function writeU32(a,o,v){ a[o]=(v>>>24)&255; a[o+1]=(v>>>16)&255; a[o+2]=(v>>>8)&255; a[o+3]=v&255; }
+function box(type,...payloads){ const size=8+payloads.reduce((s,p)=>s+(p?p.length:0),0); return bytes(u32(size),str(type),...payloads); }
+const full=(type,flags,...p)=>box(type,bytes(u8(0),u24(flags)),...p);
+function matrix(){ return bytes(u32(0x00010000),u32(0),u32(0),u32(0),u32(0x00010000),u32(0),u32(0),u32(0),u32(0x40000000)); }
+function groupDurations(samples, defaultDur){ const entries=[]; for(const s of samples){ const d=s.duration||defaultDur; const last=entries[entries.length-1]; if(last&&last.d===d) last.n++; else entries.push({n:1,d}); } return entries; }
+function mp4Mux(video,audio){
+  const ftyp=box('ftyp',str('isom'),u32(0x200),str('isom'),str('iso2'),str('avc1'),str('mp41'));
+  const videoData=bytes(...video.samples.map(s=>s.data));
+  const audioData=audio ? bytes(...audio.samples.map(s=>s.data)) : new Uint8Array(0);
+  const mdat=box('mdat',bytes(videoData,audioData));
+  let moov=makeMoov(0,0); let videoOffset=ftyp.length+moov.length+8; let audioOffset=videoOffset+videoData.length; moov=makeMoov(videoOffset,audioOffset);
+  return new Blob([ftyp,moov,mdat],{type:'video/mp4'});
+  function makeMoov(vOff,aOff){
+    const mvTimescale=1000; const vDur=video.samples.reduce((s,x)=>s+(x.duration||Math.round(video.timescale/video.fps)),0); const movieDur=Math.round(vDur*mvTimescale/video.timescale);
+    return box('moov',
+      full('mvhd',0,u32(0),u32(0),u32(mvTimescale),u32(movieDur),u32(0x00010000),u16(0x0100),u16(0),u32(0),u32(0),matrix(),u32(0),u32(0),u32(0),u32(0),u32(0),u32(0),u32(audio?3:2)),
+      makeVideoTrak(vOff, movieDur),
+      audio ? makeAudioTrak(aOff, movieDur) : null
+    );
+  }
+  function makeVideoTrak(offset,movieDur){
+    const ts=video.timescale; const sampleDur=Math.round(ts/video.fps); const duration=video.samples.reduce((s,x)=>s+(x.duration||sampleDur),0);
+    return box('trak',
+      full('tkhd',7,u32(0),u32(0),u32(1),u32(0),u32(movieDur),u32(0),u32(0),u16(0),u16(0),u16(0),u16(0),matrix(),u32(video.width<<16),u32(video.height<<16)),
+      box('mdia', full('mdhd',0,u32(0),u32(0),u32(ts),u32(duration),u16(0x55c4),u16(0)), full('hdlr',0,u32(0),str('vide'),u32(0),u32(0),u32(0),str('VideoHandler\0')), box('minf', full('vmhd',1,u16(0),u16(0),u16(0),u16(0)), box('dinf', full('dref',0,u32(1), full('url ',1))), box('stbl', videoStsd(), stts(video.samples,sampleDur), stss(), stsc(video.samples.length), stsz(video.samples), stco(offset))))
+    );
+  }
+  function makeAudioTrak(offset,movieDur){
+    const ts=audio.sampleRate; const duration=audio.samples.reduce((s,x)=>s+(x.duration||1024),0);
+    return box('trak',
+      full('tkhd',7,u32(0),u32(0),u32(2),u32(0),u32(movieDur),u32(0),u32(0),u16(0),u16(0),u16(0x0100),u16(0),matrix(),u32(0),u32(0)),
+      box('mdia', full('mdhd',0,u32(0),u32(0),u32(ts),u32(duration),u16(0x55c4),u16(0)), full('hdlr',0,u32(0),str('soun'),u32(0),u32(0),u32(0),str('SoundHandler\0')), box('minf', full('smhd',0,u16(0),u16(0)), box('dinf', full('dref',0,u32(1), full('url ',1))), box('stbl', audioStsd(), stts(audio.samples,1024), stsc(audio.samples.length), stsz(audio.samples), stco(offset))))
+    );
+  }
+  function videoStsd(){ const comp=new Uint8Array(32); return full('stsd',0,u32(1),box('avc1',bytes(new Uint8Array(6),u16(1),new Uint8Array(16),u16(video.width),u16(video.height),u32(0x00480000),u32(0x00480000),u32(0),u16(1),comp,u16(0x18),u16(0xffff),box('avcC',video.avcC)))); }
+  function audioStsd(){ return full('stsd',0,u32(1),box('mp4a',bytes(new Uint8Array(6),u16(1),new Uint8Array(8),u16(audio.channels),u16(16),u16(0),u16(0),u32(audio.sampleRate<<16),esds(audio.asc,audio.bitrate||96000)))); }
+  function stts(samples,def){ const entries=groupDurations(samples,def); return full('stts',0,u32(entries.length),...entries.flatMap(e=>[u32(e.n),u32(e.d)])); }
+  function stss(){ const keys=video.samples.map((s,i)=>s.key?i+1:0).filter(Boolean); return full('stss',0,u32(keys.length),...keys.map(u32)); }
+  function stsc(n){ return full('stsc',0,u32(1),u32(1),u32(n),u32(1)); }
+  function stsz(samples){ return full('stsz',0,u32(0),u32(samples.length),...samples.map(s=>u32(s.data.length))); }
+  function stco(offset){ return full('stco',0,u32(1),u32(offset)); }
+}
+function esds(asc, bitrate){
+  const max=bitrate||96000, avg=bitrate||96000;
+  const dsi = bytes(u8(0x05), descrLen(asc.length), asc);
+  const dec = bytes(u8(0x04), descrLen(13+dsi.length), u8(0x40), u8(0x15), u24(0), u32(max), u32(avg), dsi);
+  const sl = bytes(u8(0x06), descrLen(1), u8(2));
+  const es = bytes(u8(0x03), descrLen(3+dec.length+sl.length), u16(1), u8(0), dec, sl);
+  return full('esds',0,es);
+}
+function descrLen(len){ const out=[]; let bytes=[len&0x7f]; len >>= 7; while(len>0){ bytes.unshift((len&0x7f)|0x80); len >>= 7; } return Uint8Array.from(bytes); }
 
-    await seekVideo(video, Math.max(0, start));
-    try { ctx.drawImage(video, 0, 0, targetW, targetH); } catch(e) {}
-    recorder.start(1000);
-    drawTimer = setInterval(draw, Math.max(40, Math.floor(1000 / preset.fps)));
-    await video.play();
+function addResult(source,outName,blob,originalSize,note,cls){
+  const url=URL.createObjectURL(blob); const row=document.createElement('tr'); const c=cls || (blob.size<=limitBytes()?'ok':'bad');
+  row.innerHTML=`<td><strong>${esc(source)}</strong><br><span class="small">Original: ${mb(originalSize)}</span></td><td><strong>${esc(outName)}</strong><br><span class="${c}">${mb(blob.size)}</span><br><span class="small">${esc(note||'')}</span></td><td><a class="download" href="${url}" download="${esc(outName)}">Baixar</a></td>`;
+  els.tbody.appendChild(row); results.push({name:outName,blob,url}); els.baixarZip.disabled=false;
+}
+async function processOne(file,index,total){
+  const base=buildBaseName(file,index); const lim=limitBytes();
+  log(`Vídeo ${index}/${total}: ${file.name} — ${mb(file.size)}`);
 
-    const expectedMs = Math.max(10000, (end - start) * 1000);
-    const maxWait = Math.ceil(expectedMs * 4 + 120000);
-    await Promise.race([stoppedPromise, delay(maxWait).then(() => { log('Processamento lento neste trecho; finalizei com segurança para não travar a página. Se o arquivo final ficar pequeno demais, processe esse vídeo sozinho.'); stopAll(); return stoppedPromise; })]);
-
-    clearInterval(drawTimer);
-    for (const tr of stream.getTracks()) tr.stop();
-    if (audioCtx) { try { await audioCtx.close(); } catch(e) {} }
-    URL.revokeObjectURL(srcUrl);
-    const blob = new Blob(chunks, { type: mimeInfo.mime });
-    if (!blob.size) throw new Error('O navegador não gerou dados para este trecho.');
-    return blob;
+  // REGRA PRINCIPAL DA v7:
+  // "automática" NÃO significa dividir pelo tamanho original.
+  // Primeiro tenta preservar; depois tenta 1 arquivo convertido; só depois aumenta partes.
+  if(els.preservar.checked && !els.forcarSplit.checked && els.partes.value==='auto' && file.size <= lim){
+    addResult(file.name,`${base}.mp4`,file,file.size,'Original preservado: áudio, codec e metadados mantidos. Sem conversão e sem divisão.', 'ok');
+    log('Preservado original abaixo do limite. Nenhuma divisão aplicada.'); return;
   }
 
-  function addResultRow(sourceName, outName, blob, originalSize, note, statusOverride){
-    const url = URL.createObjectURL(blob);
-    const row = document.createElement('tr');
-    const statusClass = statusOverride || (blob.size <= currentLimitBytes() ? 'ok' : 'bad');
-    row.innerHTML = `
-      <td><strong>${escapeHtml(sourceName)}</strong><br><span class="small">Original: ${mb(originalSize)}</span></td>
-      <td><strong>${escapeHtml(outName)}</strong><br><span class="${statusClass}">${mb(blob.size)}</span><br><span class="small">${escapeHtml(note || '')}</span></td>
-      <td><a class="download" href="${url}" download="${escapeAttr(outName)}">Baixar</a></td>`;
-    els.tbody.appendChild(row);
-    results.push({ name: outName, blob, url });
-    els.baixarZip.disabled = results.length === 0;
+  const meta=await loadMeta(file); if(!isFinite(meta.duration)||meta.duration<=0) throw new Error('Não foi possível ler a duração do vídeo.');
+  log(`Metadados: ${meta.width}x${meta.height}, ${meta.duration.toFixed(1)}s.`);
+
+  let audioBuffer=null, withAudio=false;
+  if(els.manterAudio.checked){
+    try{ audioBuffer=await decodeAudioBuffer(file); withAudio=!!audioBuffer; log(`Áudio detectado: ${audioBuffer.numberOfChannels} canal(is), ${audioBuffer.sampleRate} Hz. Será mantido.`); }
+    catch(e){
+      if(els.fallbackSemAudio.checked){ log(`Aviso: não foi possível decodificar áudio (${e.message}). Fallback sem áudio autorizado.`); withAudio=false; }
+      else throw new Error(`Áudio obrigatório, mas o navegador não conseguiu decodificar/codificar o áudio: ${e.message}`);
+    }
+  } else { log('Áudio desmarcado manualmente. Vídeo convertido sairá sem áudio.'); }
+
+  const divisaoManual = els.partes.value !== 'auto';
+  const minParts = divisaoManual ? Math.max(1, Number(els.partes.value)||1) : 1;
+  let parts = els.forcarSplit.checked ? Math.max(2, minParts) : minParts;
+  const maxParts = 24;
+
+  if(!els.forcarSplit.checked && !divisaoManual){
+    log('Divisão automática v7: primeiro será tentado UM arquivo único. O tamanho original NÃO força divisão.');
+  } else if(els.forcarSplit.checked){
+    log(`Divisão forçada marcada pelo usuário. Iniciando com ${parts} parte(s).`);
+  } else {
+    log(`Divisão manual selecionada pelo usuário. Iniciando com ${parts} parte(s).`);
   }
 
-  function addFailureRow(sourceName, originalSize, note){
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td><strong>${escapeHtml(sourceName)}</strong><br><span class="small">Original: ${mb(originalSize)}</span></td>
-      <td><strong class="bad">Não gerado</strong><br><span class="small">${escapeHtml(note)}</span></td>
-      <td><span class="small">Sem arquivo</span></td>`;
-    els.tbody.appendChild(row);
-  }
+  while(parts <= maxParts){
+    let failed=false, oversized=false, produced=[];
+    const segDur = meta.duration / parts;
+    log(`Tentativa com ${parts} parte(s). Duração aproximada por parte: ${segDur.toFixed(1)}s.`);
 
-  async function processOne(file, fileIndex, totalFiles){
-    const mimeInfo = pickMime();
-    const limitBytes = currentLimitBytes();
-    const base = buildBaseName(fileIndex);
-    const originalExt = extFromName(file.name) || 'mp4';
+    for(let p=0;p<parts;p++){
+      const start=p*segDur, end=Math.min(meta.duration,(p+1)*segDur);
+      const presets=presetFor(meta); let bestBlob=null,bestPreset=null,bestOverLimit=null;
 
-    log(`Vídeo ${fileIndex+1}/${totalFiles}: ${file.name} — ${mb(file.size)}`);
+      for(const preset of presets){
+        const br=bitratesFor(end-start,preset,withAudio);
+        setProg(((index-1)/total)*100 + ((p/parts)/total)*100, `Processando ${file.name} — ${parts===1?'arquivo único':'parte '+(p+1)+'/'+parts}`);
+        log(`${parts===1?'Arquivo único':'Parte '+(p+1)+'/'+parts}: ${preset.w}x${preset.h}, ${preset.fps}fps, vídeo ~${Math.round(br.video/1000)} kbps${withAudio?', áudio AAC 96 kbps':''}.`);
+        try{
+          const blob=await encodeSegment(file,start,end,preset,br.video,audioBuffer,withAudio,(r)=>setProg(((index-1)/total)*100 + (((p+r)/parts)/total)*100));
+          log(`Resultado ${parts===1?'arquivo único':'parte '+(p+1)}: ${mb(blob.size)}.`);
 
-    if (file.size <= limitBytes && isPortalNativeVideo(file) && els.modoPortal.checked && !els.forcarConversao.checked) {
-      const ext = originalExt === 'mov' ? 'mov' : 'mp4';
-      const type = ext === 'mov' ? (file.type || 'video/quicktime') : (file.type || 'video/mp4');
-      const originalBlob = file.slice(0, file.size, type);
-      addResultRow(file.name, `${base}_ORIGINAL.${ext}`, originalBlob, file.size, 'Preservado sem recodificar. Este é o modo mais seguro para o portal.', 'ok');
-      log('Preservado original: arquivo já estava abaixo do limite.');
-      return;
-    }
-
-    if (!mimeInfo) {
-      addFailureRow(file.name, file.size, 'Este navegador não permite gerar MP4 no modo portal. Desative modo portal ou use Chrome/Edge/Safari atualizado.');
-      log('Falha: navegador não informou suporte para MP4 em MediaRecorder.');
-      return;
-    }
-
-    let meta;
-    try { meta = await metadata(file); }
-    catch(e) { addFailureRow(file.name, file.size, 'Não consegui ler os metadados do vídeo: ' + e.message); log('Falha metadados: ' + e.message); return; }
-    if (!meta.duration || !isFinite(meta.duration)) { addFailureRow(file.name, file.size, 'Não consegui ler a duração do vídeo.'); return; }
-    log(`Metadados: ${meta.width}x${meta.height}, ${meta.duration.toFixed(1)}s. Conversão: ${mimeInfo.label}`);
-
-    const presets = buildPresets(meta.height);
-    // Arquivo grande em MB não é motivo para dividir direto: um vídeo curto de 53 MB pode virar 2 a 8 MB com boa qualidade.
-    // Só pulamos o arquivo único quando a duração é longa demais para o navegador processar com segurança.
-    const shouldSkipSingle = meta.duration > 180;
-
-    if (!shouldSkipSingle) {
-      for (let i = 0; i < presets.length; i++) {
-        const preset = presets[i]; const br = calcBitrate(meta.duration, limitBytes, preset);
-        log(`Tentativa arquivo único ${i+1}: ${preset.height}p, ${preset.fps}fps, vídeo ~${Math.round(br.videoBps/1000)} kbps`);
-        setProgress(((fileIndex) / totalFiles) * 100, `Convertendo ${file.name}: tentativa ${i+1}/${presets.length}`);
-        try {
-          const blob = await recordSegment(file, 0, meta.duration, preset, br, mimeInfo, (t) => {
-            const baseProg = (fileIndex / totalFiles) * 100;
-            const local = clamp(t / meta.duration, 0, 1) * (100 / totalFiles) * 0.75;
-            setProgress(baseProg + local, `Convertendo ${file.name} — ${Math.round(t)}s de ${Math.round(meta.duration)}s`);
-          });
-          log(`Resultado tentativa ${i+1}: ${mb(blob.size)}`);
-          if (blob.size <= limitBytes) {
-            addResultRow(file.name, `${base}.${mimeInfo.ext}`, blob, file.size, `Convertido para ${preset.height}p/${preset.fps}fps. Formato: ${mimeInfo.label}.`);
-            return;
-          }
-        } catch(e) { log('Tentativa arquivo único falhou; será dividido. Motivo: ' + e.message); break; }
-      }
-    } else {
-      log('Arquivo grande/longo: pulando arquivo único e indo direto para divisão sequencial.');
-    }
-
-    const splitPreset = presets[0];
-    // Divisão calculada pela duração e pelo bitrate de saída, não pelo tamanho original.
-    // Isso evita o erro da versão anterior: dividir demais e gerar partes minúsculas de 0,03 MB.
-    const brRef = calcBitrate(Math.min(meta.duration, 30), limitBytes, splitPreset);
-    const estimatedBps = brRef.videoBps + (brRef.audioBps || 0);
-    const safeSegmentSeconds = Math.max(8, Math.floor((limitBytes * 0.72 * 8) / Math.max(estimatedBps, 1)));
-    let partsByDuration = Math.ceil(meta.duration / safeSegmentSeconds);
-    let parts = Math.max(2, partsByDuration);
-    if (els.partesMinimas.value !== 'auto') parts = Math.max(parts, Number(els.partesMinimas.value));
-    parts = clamp(parts, 2, 99);
-    log(`Dividindo em ${parts} partes iniciais com ${splitPreset.height}p. Regra: poucas partes, maior qualidade possível dentro do limite.`);
-
-    let generated = false;
-    while (!generated && parts <= 99) {
-      const blobs = [];
-      let allInside = true;
-      for (let p = 0; p < parts; p++) {
-        const start = meta.duration * p / parts;
-        const end = meta.duration * (p + 1) / parts;
-        log(`Parte ${p+1}/${parts}: ${start.toFixed(1)}s até ${end.toFixed(1)}s`);
-        try {
-          const brPart = calcBitrate(Math.max(1, end - start), limitBytes, splitPreset);
-          const blob = await recordSegment(file, start, end, splitPreset, brPart, mimeInfo, (t) => {
-            const baseProg = (fileIndex / totalFiles) * 100;
-            const localPart = ((p + clamp((t-start)/(end-start),0,1)) / parts) * (100 / totalFiles) * 0.85;
-            setProgress(baseProg + localPart, `Dividindo ${file.name} — parte ${p+1}/${parts}`);
-          });
-          blobs.push(blob);
-          if (blob.size > limitBytes) allInside = false;
-        } catch(e) {
-          log(`Falha na parte ${p+1}/${parts}: ${e.message}`);
-          allInside = false; break;
+          // Mantém a melhor tentativa. Se já coube, para imediatamente.
+          if(blob.size <= lim){ bestBlob=blob; bestPreset=preset; bestOverLimit=null; break; }
+          bestOverLimit = {blob,preset};
+          if(!bestBlob){ bestBlob=blob; bestPreset=preset; }
+        }catch(e){
+          failed=true; log(`Falha ${parts===1?'no arquivo único':'na parte '+(p+1)}: ${e.message}`);
+          if(!els.fallbackSemAudio.checked || !withAudio) throw e;
         }
+        await delay(0);
       }
-      if (!allInside) { parts += 1; log('Uma parte passou do limite ou falhou. Repetindo com mais partes: ' + parts); continue; }
-      blobs.forEach((blob, p) => addResultRow(file.name, `${base}_PARTE_${pad(p+1)}_DE_${pad(parts)}.${mimeInfo.ext}`, blob, file.size, `Sequência ${p+1}/${parts}. Enviar na ordem.`));
-      generated = true;
+
+      if(failed) break;
+      if(!bestBlob) throw new Error('Nenhum arquivo foi gerado.');
+      if(bestBlob.size > lim){
+        oversized=true;
+        produced.push({blob:bestBlob,preset:bestPreset,start,end});
+        log(`${parts===1?'Arquivo único':'Parte '+(p+1)} ficou acima do limite (${mb(bestBlob.size)}).`);
+      } else {
+        produced.push({blob:bestBlob,preset:bestPreset,start,end});
+      }
     }
-    if (!generated) addFailureRow(file.name, file.size, 'Mesmo dividindo em muitas partes não foi possível garantir o limite neste navegador.');
+
+    if(!failed && (!oversized || !els.validarTamanho.checked)){
+      produced.forEach((x,p)=>{
+        const name = parts===1 ? `${base}.mp4` : `${base}_PARTE_${pad(p+1)}_DE_${pad(parts)}.mp4`;
+        const note = parts===1
+          ? `Arquivo único. MP4/H.264${withAudio?' + AAC com áudio':' sem áudio'}. ${x.preset.w}x${x.preset.h}.`
+          : `Sequência ${p+1}/${parts}. MP4/H.264${withAudio?' + AAC com áudio':' sem áudio'}. ${x.preset.w}x${x.preset.h}. Enviar na ordem.`;
+        addResult(file.name,name,x.blob,file.size,note, x.blob.size<=lim?'ok':'bad');
+      });
+      if(parts===1) log('Finalizado em arquivo único. Nenhuma divisão aplicada.');
+      return;
+    }
+
+    if(els.validarTamanho.checked){
+      if(parts===1) log('O arquivo único ainda passou do limite. Agora sim a divisão será usada para respeitar o portal.');
+      parts++;
+      log(`Refazendo com ${parts} parte(s) para respeitar o limite.`);
+    } else {
+      produced.forEach((x,p)=>{
+        const name = parts===1 ? `${base}.mp4` : `${base}_PARTE_${pad(p+1)}_DE_${pad(parts)}.mp4`;
+        addResult(file.name,name,x.blob,file.size,'Gerado mesmo acima do limite porque a validação automática foi desmarcada.', 'bad');
+      });
+      return;
+    }
   }
-
-  els.processar.addEventListener('click', async () => {
-    if (!selectedFiles.length) { alert('Selecione pelo menos um vídeo.'); return; }
-    if (!els.placa.value.trim()) { alert('Informe a placa para nomear os arquivos corretamente.'); els.placa.focus(); return; }
-    els.processar.disabled = true; els.baixarZip.disabled = true; setProgress(0, 'Iniciando...');
-    log('Início do processamento. Limite: ' + els.limite.value + ' MB por arquivo.');
-    const mimeInfo = pickMime(); log('Modo portal: ' + (els.modoPortal.checked ? 'ativo' : 'inativo') + '. Conversão detectada: ' + (mimeInfo ? mimeInfo.label : 'sem MP4 disponível') + '.');
-    for (let i = 0; i < selectedFiles.length; i++) {
-      try { await processOne(selectedFiles[i], i, selectedFiles.length); }
-      catch(e) { console.error(e); log('ERRO controlado no vídeo ' + (i+1) + ': ' + e.message); addFailureRow(selectedFiles[i].name, selectedFiles[i].size, e.message); }
-      setProgress(((i + 1) / selectedFiles.length) * 100, `Concluído ${i+1}/${selectedFiles.length}`);
+  throw new Error('Não foi possível manter o arquivo dentro do limite mesmo aumentando as partes. Use limite maior ou grave o vídeo em trechos menores.');
+}
+async function processAll(){
+  if(!selectedFiles.length){ alert('Selecione pelo menos um vídeo.'); return; }
+  els.processar.disabled=true; els.baixarZip.disabled=true; els.tbody.innerHTML=''; results.forEach(r=>URL.revokeObjectURL(r.url)); results=[]; els.log.textContent=''; setProg(0,'Iniciando...');
+  try{
+    for(let i=0;i<selectedFiles.length;i++){
+      try{ await processOne(selectedFiles[i], i+1, selectedFiles.length); }
+      catch(e){ log(`ERRO em ${selectedFiles[i].name}: ${e.message}`); addResult(selectedFiles[i].name,`ERRO_${sanitize(selectedFiles[i].name,'VIDEO')}.txt`,new Blob([`Não processado: ${e.message}`],{type:'text/plain'}),selectedFiles[i].size,e.message,'bad'); }
+      setProg(((i+1)/selectedFiles.length)*100, `Concluído ${i+1}/${selectedFiles.length}`);
+      await delay(0);
     }
-    setProgress(100, 'Processamento concluído. Baixe os arquivos individuais ou o ZIP.');
-    log('Processamento finalizado sem travar a página. Confira visualmente os vídeos gerados antes de enviar ao portal.');
-    els.processar.disabled = false; els.baixarZip.disabled = results.length === 0;
-  });
+    setProg(100,'Processamento concluído. Confira os vídeos antes de enviar ao portal.'); log('Processamento finalizado.');
+  }finally{ els.processar.disabled=false; els.baixarZip.disabled=results.length===0; }
+}
+els.processar.onclick=processAll;
+els.limpar.onclick=()=>{ results.forEach(r=>URL.revokeObjectURL(r.url)); results=[]; selectedFiles=[]; labels=new Map(); els.tbody.innerHTML=''; els.fileList.innerHTML=''; els.log.textContent=''; els.progresso.value=0; els.status.textContent='Aguardando vídeos.'; els.baixarZip.disabled=true; };
 
-  const crcTable = (() => { let c; const table = []; for (let n = 0; n < 256; n++) { c = n; for (let k = 0; k < 8; k++) c = ((c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1)); table[n] = c >>> 0; } return table; })();
-  function crc32(u8){ let crc = 0 ^ (-1); for (let i = 0; i < u8.length; i++) crc = (crc >>> 8) ^ crcTable[(crc ^ u8[i]) & 0xff]; return (crc ^ (-1)) >>> 0; }
-  function dosTimeDate(date = new Date()){ const time = (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds()/2); const dosDate = ((date.getFullYear() - 1980) << 9) | ((date.getMonth()+1) << 5) | date.getDate(); return {time, dosDate}; }
-  function u16(arr, off, v){ arr[off]=v&255; arr[off+1]=(v>>>8)&255; }
-  function u32(arr, off, v){ arr[off]=v&255; arr[off+1]=(v>>>8)&255; arr[off+2]=(v>>>16)&255; arr[off+3]=(v>>>24)&255; }
-
-  async function makeZip(files){
-    const enc = new TextEncoder(); const locals = [], centrals = []; let offset = 0;
-    for (const f of files) {
-      const nameBytes = enc.encode(f.name); const data = new Uint8Array(await f.blob.arrayBuffer()); const crc = crc32(data); const dt = dosTimeDate();
-      const local = new Uint8Array(30 + nameBytes.length + data.length);
-      u32(local,0,0x04034b50); u16(local,4,20); u16(local,6,0x0800); u16(local,8,0); u16(local,10,dt.time); u16(local,12,dt.dosDate);
-      u32(local,14,crc); u32(local,18,data.length); u32(local,22,data.length); u16(local,26,nameBytes.length); u16(local,28,0); local.set(nameBytes,30); local.set(data,30+nameBytes.length); locals.push(local);
-      const central = new Uint8Array(46 + nameBytes.length);
-      u32(central,0,0x02014b50); u16(central,4,20); u16(central,6,20); u16(central,8,0x0800); u16(central,10,0); u16(central,12,dt.time); u16(central,14,dt.dosDate);
-      u32(central,16,crc); u32(central,20,data.length); u32(central,24,data.length); u16(central,28,nameBytes.length); u16(central,30,0); u16(central,32,0); u16(central,34,0); u16(central,36,0); u32(central,38,0); u32(central,42,offset); central.set(nameBytes,46); centrals.push(central); offset += local.length;
-    }
-    const centralOffset = offset; const centralSize = centrals.reduce((s,a)=>s+a.length,0); const end = new Uint8Array(22);
-    u32(end,0,0x06054b50); u16(end,4,0); u16(end,6,0); u16(end,8,files.length); u16(end,10,files.length); u32(end,12,centralSize); u32(end,16,centralOffset); u16(end,20,0);
-    return new Blob([...locals, ...centrals, end], { type: 'application/zip' });
-  }
-
-  els.baixarZip.addEventListener('click', async () => {
-    if (!results.length) return;
-    els.baixarZip.disabled = true;
-    const placa = sanitize(els.placa.value || 'SEM_PLACA', 'SEM_PLACA'); const servico = sanitize(els.servico.value || 'EVIDENCIAS', 'EVIDENCIAS');
-    log('Gerando ZIP local...');
-    try {
-      const zip = await makeZip(results); const url = URL.createObjectURL(zip); const a = document.createElement('a');
-      a.href = url; a.download = `${placa}_${servico}_EVIDENCIAS_PORTAL.zip`; document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 30000); log('ZIP gerado: ' + mb(zip.size));
-    } catch (e) { alert('Erro ao gerar ZIP: ' + e.message); log('ERRO ZIP: ' + e.message); }
-    finally { els.baixarZip.disabled = false; }
-  });
-
-  refreshCompat(); listFiles();
+async function makeZip(files){
+  const enc=new TextEncoder(); const chunks=[]; const central=[]; let offset=0;
+  function crc32(u8){ let c=~0; for(let i=0;i<u8.length;i++){ c^=u8[i]; for(let k=0;k<8;k++) c=(c>>>1)^(0xEDB88320&-(c&1)); } return (~c)>>>0; }
+  function dosTime(){ const d=new Date(); return {time:(d.getHours()<<11)|(d.getMinutes()<<5)|(Math.floor(d.getSeconds()/2)), date:((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate()}; }
+  for(const f of files){ const nameBytes=enc.encode(f.name); const data=new Uint8Array(await f.blob.arrayBuffer()); const crc=crc32(data); const dt=dosTime(); const local=bytes(u32(0x04034b50),u16(20),u16(0),u16(0),u16(dt.time),u16(dt.date),u32(crc),u32(data.length),u32(data.length),u16(nameBytes.length),u16(0),nameBytes,data); chunks.push(local); central.push({nameBytes,crc,size:data.length,offset,dt}); offset+=local.length; }
+  const cStart=offset; const cChunks=[]; for(const f of central){ const c=bytes(u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(f.dt.time),u16(f.dt.date),u32(f.crc),u32(f.size),u32(f.size),u16(f.nameBytes.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(f.offset),f.nameBytes); cChunks.push(c); offset+=c.length; } const cSize=offset-cStart; const end=bytes(u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(cSize),u32(cStart),u16(0)); return new Blob([...chunks,...cChunks,end],{type:'application/zip'});
+}
+els.baixarZip.onclick=async()=>{ if(!results.length) return; const zip=await makeZip(results); const url=URL.createObjectURL(zip); const a=document.createElement('a'); a.href=url; a.download=`${sanitize(els.placa.value,'EVIDENCIAS')}_VIDEOS_PROCESSADOS.zip`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000); };
 })();
 </script>
 </body>
