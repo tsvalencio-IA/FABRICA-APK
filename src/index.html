@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Compressor Offline de Evidências de Veículos</title>
+  <title>Compressor Offline de Evidências de Veículos — v3</title>
   <style>
     :root{
       --bg:#0f172a;--card:#111827;--card2:#0b1220;--text:#e5e7eb;--muted:#9ca3af;--line:#263244;
@@ -69,6 +69,7 @@
         <span class="pill">Não envia arquivo para servidor</span>
         <span class="pill">Preserva original quando possível</span>
         <span class="pill">ZIP final</span>
+        <span class="pill">v3: evita divisão excessiva</span>
       </div>
     </header>
 
@@ -107,7 +108,7 @@
           <div>
             <label for="qualidade">Estratégia</label>
             <select id="qualidade">
-              <option value="portal" selected>Portal Localiza: compatibilidade máxima</option>
+              <option value="portal" selected>Portal Localiza: qualidade segura</option>
               <option value="auto">Automática: qualidade máxima dentro do limite</option>
               <option value="rapida">Rápida: menor arquivo</option>
               <option value="forte">Forte: comprime mais</option>
@@ -147,7 +148,7 @@
         </div>
 
         <div class="notice">
-          <strong>Correção importante:</strong> erro 500 no portal normalmente acontece quando o servidor recebe um MP4 com codec/metadados que ele não aceita. Por isso esta versão preserva o arquivo original quando ele já está abaixo do limite. Só recodifica/divide quando for necessário.
+          <strong>Correção importante:</strong> erro 500 no portal normalmente acontece quando o servidor recebe um MP4 com codec/metadados que ele não aceita. Por isso esta versão preserva o arquivo original quando ele já está abaixo do limite. Quando precisar converter, ela tenta primeiro gerar um único vídeo em qualidade segura e só divide se realmente for necessário.
         </div>
         <div class="dangerNotice">
           <strong>Limite real:</strong> se a plataforma mostrar 28 MB, mas a operação exigir 10 MB, use 9,2 MB ou 9,5 MB. Essa margem evita rejeição por diferença entre MB decimal, MiB e overhead de upload.
@@ -339,7 +340,7 @@
   function buildPresets(videoHeight){
     const q = els.qualidade.value;
     let heights;
-    if (q === 'portal') heights = [540,480,360,240];
+    if (q === 'portal') heights = [720,540,480,360,240];
     else if (q === 'rapida') heights = [480,360,240];
     else if (q === 'forte') heights = [540,480,360,240];
     else heights = [720,540,480,360,240];
@@ -424,7 +425,7 @@
 
     const expectedMs = Math.max(10000, (end - start) * 1000);
     const maxWait = Math.ceil(expectedMs * 4 + 120000);
-    await Promise.race([stoppedPromise, delay(maxWait).then(() => { log('Aviso: trecho demorou demais; encerrando gravação parcial de forma segura.'); stopAll(); return stoppedPromise; })]);
+    await Promise.race([stoppedPromise, delay(maxWait).then(() => { log('Processamento lento neste trecho; finalizei com segurança para não travar a página. Se o arquivo final ficar pequeno demais, processe esse vídeo sozinho.'); stopAll(); return stoppedPromise; })]);
 
     clearInterval(drawTimer);
     for (const tr of stream.getTracks()) tr.stop();
@@ -487,7 +488,9 @@
     log(`Metadados: ${meta.width}x${meta.height}, ${meta.duration.toFixed(1)}s. Conversão: ${mimeInfo.label}`);
 
     const presets = buildPresets(meta.height);
-    const shouldSkipSingle = file.size > limitBytes * 1.8 || meta.duration > 150;
+    // Arquivo grande em MB não é motivo para dividir direto: um vídeo curto de 53 MB pode virar 2 a 8 MB com boa qualidade.
+    // Só pulamos o arquivo único quando a duração é longa demais para o navegador processar com segurança.
+    const shouldSkipSingle = meta.duration > 180;
 
     if (!shouldSkipSingle) {
       for (let i = 0; i < presets.length; i++) {
@@ -511,15 +514,17 @@
       log('Arquivo grande/longo: pulando arquivo único e indo direto para divisão sequencial.');
     }
 
-    const splitPreset = presets[presets.length - 1];
-    const br = calcBitrate(meta.duration, limitBytes, splitPreset);
-    const estimatedBps = br.videoBps + (br.audioBps || 0);
-    let partsByBitrate = Math.ceil((estimatedBps * meta.duration / 8) / (limitBytes * 0.72));
-    let partsByOriginal = Math.ceil(file.size / (limitBytes * 0.90));
-    let parts = Math.max(2, partsByBitrate, partsByOriginal);
+    const splitPreset = presets[0];
+    // Divisão calculada pela duração e pelo bitrate de saída, não pelo tamanho original.
+    // Isso evita o erro da versão anterior: dividir demais e gerar partes minúsculas de 0,03 MB.
+    const brRef = calcBitrate(Math.min(meta.duration, 30), limitBytes, splitPreset);
+    const estimatedBps = brRef.videoBps + (brRef.audioBps || 0);
+    const safeSegmentSeconds = Math.max(8, Math.floor((limitBytes * 0.72 * 8) / Math.max(estimatedBps, 1)));
+    let partsByDuration = Math.ceil(meta.duration / safeSegmentSeconds);
+    let parts = Math.max(2, partsByDuration);
     if (els.partesMinimas.value !== 'auto') parts = Math.max(parts, Number(els.partesMinimas.value));
     parts = clamp(parts, 2, 99);
-    log(`Dividindo em ${parts} partes iniciais com ${splitPreset.height}p.`);
+    log(`Dividindo em ${parts} partes iniciais com ${splitPreset.height}p. Regra: poucas partes, maior qualidade possível dentro do limite.`);
 
     let generated = false;
     while (!generated && parts <= 99) {
@@ -530,7 +535,8 @@
         const end = meta.duration * (p + 1) / parts;
         log(`Parte ${p+1}/${parts}: ${start.toFixed(1)}s até ${end.toFixed(1)}s`);
         try {
-          const blob = await recordSegment(file, start, end, splitPreset, br, mimeInfo, (t) => {
+          const brPart = calcBitrate(Math.max(1, end - start), limitBytes, splitPreset);
+          const blob = await recordSegment(file, start, end, splitPreset, brPart, mimeInfo, (t) => {
             const baseProg = (fileIndex / totalFiles) * 100;
             const localPart = ((p + clamp((t-start)/(end-start),0,1)) / parts) * (100 / totalFiles) * 0.85;
             setProgress(baseProg + localPart, `Dividindo ${file.name} — parte ${p+1}/${parts}`);
@@ -561,7 +567,7 @@
       setProgress(((i + 1) / selectedFiles.length) * 100, `Concluído ${i+1}/${selectedFiles.length}`);
     }
     setProgress(100, 'Processamento concluído. Baixe os arquivos individuais ou o ZIP.');
-    log('Processamento finalizado sem travar a página.');
+    log('Processamento finalizado sem travar a página. Confira visualmente os vídeos gerados antes de enviar ao portal.');
     els.processar.disabled = false; els.baixarZip.disabled = results.length === 0;
   });
 
