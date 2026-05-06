@@ -1,0 +1,19 @@
+{
+  "appId": "br.com.thiaguinho.compressoroffline",
+  "appName": "Compressor Offline",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1200,
+      "backgroundColor": "#0f172a",
+      "showSpinner": true,
+      "spinnerColor": "#38bdf8"
+    }
+  },
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  }
+}

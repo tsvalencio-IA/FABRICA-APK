@@ -1,0 +1,22 @@
+{
+  "name": "thiaguinho-compressor-offline-apk",
+  "version": "1.0.0",
+  "description": "Compressor offline de evidências em vídeo com banco local e geração de APK Android via GitHub Actions.",
+  "private": true,
+  "scripts": {
+    "prepare:www": "node scripts/prepare-www.mjs",
+    "cap:add:android": "npx cap add android",
+    "cap:sync": "npx cap sync android",
+    "build:apk:debug": "cd android && ./gradlew assembleDebug",
+    "build:apk:release": "cd android && ./gradlew assembleRelease",
+    "build:aab:release": "cd android && ./gradlew bundleRelease"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/cli": "^6.2.1",
+    "@capacitor/core": "^6.2.1",
+    "@capacitor/filesystem": "^6.0.3",
+    "@capacitor/share": "^6.0.3"
+  },
+  "devDependencies": {}
+}
