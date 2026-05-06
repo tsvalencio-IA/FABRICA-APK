@@ -1,7 +1,7 @@
 {
   "name": "compressor-videos-offline-apk-pc",
-  "version": "3.0.0",
-  "description": "App offline para PC e Android com o HTML conversor enviado pelo usuário.",
+  "version": "4.0.0",
+  "description": "App offline para PC Windows e Android com o HTML conversor real enviado pelo usuário.",
   "main": "electron/main.js",
   "private": true,
   "scripts": {
@@ -10,7 +10,7 @@
     "cap:sync": "npx cap sync android",
     "android:debug": "npm run prepare:www && npx cap sync android && cd android && ./gradlew assembleDebug",
     "electron:start": "electron .",
-    "pc:win": "electron-builder --win nsis portable --x64",
+    "pc:win": "electron-builder --win nsis portable --x64 --publish never",
     "pc:dir": "electron-builder --dir"
   },
   "dependencies": {
@@ -34,13 +34,17 @@
       "package.json"
     ],
     "win": {
-      "target": ["nsis", "portable"]
+      "target": [
+        "nsis",
+        "portable"
+      ]
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
-    }
+    },
+    "publish": null
   }
 }

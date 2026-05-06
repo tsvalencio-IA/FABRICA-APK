@@ -1,49 +1,24 @@
-# Compressor Offline de Evidências — APK Android + PC Windows
+# Compressor Offline thIAguinho — Android + Windows PC
 
-Este repositório foi montado para transformar o HTML enviado (`conversor-v2.html`) em:
+Este repositório gera:
 
-- APK Android instalável direto;
-- Instalador Windows `.exe` para PC;
-- pacote Web/PWA.
+- APK Android offline via Capacitor
+- Instalador Windows `.exe` via Electron
+- Pacote Web/PWA
 
-## Onde está o HTML enviado?
+## Onde está o HTML enviado
 
-O HTML completo enviado pelo usuário está aqui:
+O HTML principal fica em:
 
 ```txt
 src/index.html
 ```
 
-Esse é o arquivo principal do app. O GitHub Actions usa esse mesmo arquivo para montar o APK Android, o instalador Windows e o pacote Web.
-
-## Estrutura
-
-```txt
-.github/workflows/build-apk-e-pc.yml
-src/index.html
-src/sw.js
-src/manifest.webmanifest
-src/icon-192.png
-src/icon-512.png
-scripts/prepare-www.mjs
-electron/main.js
-electron/preload.js
-capacitor.config.json
-package.json
-README.md
-```
+Esse é o arquivo usado pelo Android, PC Windows e Web/PWA.
 
 ## Como subir no GitHub
 
-Crie um repositório novo, por exemplo:
-
-```txt
-compressor-videos-offline-apk-pc
-```
-
-Extraia o ZIP e suba o conteúdo de dentro da pasta `gerador-apk-pc-offline-v3` na raiz do repositório.
-
-A raiz do GitHub precisa ficar assim:
+Suba o conteúdo da pasta `gerador-apk-pc-offline-v4` na raiz do repositório. A raiz deve ficar assim:
 
 ```txt
 .github/
@@ -55,34 +30,25 @@ capacitor.config.json
 README.md
 ```
 
-## Como gerar o APK e o instalador PC
+## Como gerar
 
 No GitHub:
 
-1. Vá em **Actions**.
-2. Abra **Build APK Android e Instalador PC**.
-3. Clique em **Run workflow**.
-4. Aguarde ficar verde.
-5. Baixe os artifacts:
+1. Abra **Actions**.
+2. Execute **Build APK Android e Instalador PC**.
+3. Baixe os artifacts:
+   - `COMPRESSOR-OFFLINE-ANDROID-APK`
+   - `COMPRESSOR-OFFLINE-WINDOWS-PC`
+   - `COMPRESSOR-OFFLINE-WEB-PWA`
+
+## Correção V4
+
+O build do Windows foi corrigido para não tentar publicar release no GitHub.
+
+O erro era:
 
 ```txt
-COMPRESSOR-OFFLINE-ANDROID-APK
-COMPRESSOR-OFFLINE-WINDOWS-PC
-COMPRESSOR-OFFLINE-WEB-PWA
+GitHub Personal Access Token is not set, neither programmatically, nor using env "GH_TOKEN"
 ```
 
-## Como usar no PC sem instalar
-
-Abra direto:
-
-```txt
-src/index.html
-```
-
-## Como testar no PC como app
-
-Baixe o artifact `COMPRESSOR-OFFLINE-WINDOWS-PC` e execute o `.exe`.
-
-## Observação
-
-O processamento de vídeo depende do suporte do navegador/WebView/Electron a `MediaRecorder` e `canvas.captureStream`.
+A correção foi adicionar `--publish never` ao comando do Electron Builder e `publish: null` no `package.json`.
